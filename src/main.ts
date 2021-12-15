@@ -1,6 +1,13 @@
-import { Colors, DenoMysql } from "../deps.ts";
-import { EndpointHandler, RequestMethod } from "./requestHandler.ts";
-import { Users } from './models/schemas.ts';
+import { Colors, DenoMysql } from '../deps.ts';
+import { EndpointHandler, RequestMethod } from './requestHandler.ts';
+import { Users, Meals, GuestsView } from './models/schemas.ts';
+
+export const baseHeaders = new Headers({
+    'Access-Control-Allow-Origin': Deno.env.get('ORIGIN') as string,
+    'Access-Control-Allow-Methods': 'POST, GET, PATCH, OPTIONS, PUT, DELETE',
+    'Access-Control-Allow-Headers': '*',
+    'Access-Control-Allow-Credentials': 'true'
+});
 
 const server = Deno.listen({ port: 8080 });
 console.warn(
@@ -10,10 +17,10 @@ console.warn(
 const eHandler = new EndpointHandler([
     {
         method: RequestMethod.POST,
-        url: "/index/login",
+        url: '/index/login',
         callbackFn: async (reqEvent: Deno.RequestEvent, dbClient: DenoMysql.Client) => {
             const body: Users = await reqEvent.request.json();
-            let dbUser = await dbClient.execute(`
+            const dbUser = await dbClient.execute(`
                 SELECT * FROM mkdb.users
                 WHERE username='${body.username}' AND password=MD5('${body.password}')
                 LIMIT 1
@@ -29,35 +36,64 @@ const eHandler = new EndpointHandler([
                 reqEvent.respondWith(new Response(
                     new Blob(
                         [JSON.stringify(user)],
-                        { type: 'application/json' }
+                        {type: 'application/json' }
                     ),
-                    { status: 201 }
+                    {
+                        status: 202,
+                        headers: baseHeaders
+                    }
                 ));
             } else {
-                reqEvent.respondWith(new Response(null, { status: 401, statusText: 'Incorrect username and/or password.'}));
+                reqEvent.respondWith(new Response(null, {
+                    status: 401,
+                    statusText: 'Incorrect username and/or password.',
+                    headers: baseHeaders
+                }));
             }
         },
     },
 
     {
         method: RequestMethod.GET,
-        url: "/get-meals",
+        url: '/get-meals',
         callbackFn: async (reqEvent: Deno.RequestEvent, dbClient: DenoMysql.Client) => {
-            let dbMeals = await dbClient.execute(`
+            const dbMeals = await dbClient.execute(`
                 SELECT * FROM mkdb.meals
+            `);
+            const dbGuests = await dbClient.execute(`
+                SELECT * FROM mkdb.v
             `);
 
             if (dbMeals.rows?.length) {
+                const guestList = dbGuests.rows as Array<GuestsView>;
+                const sortedMealsList: Array<Meals> = dbMeals.rows.sort((a: Meals, b: Meals) => {
+                    return a.mid - b.mid;
+                }).map((el) => {
+                    const guests = guestList.filter((g: GuestsView) => {
+                        return g.meal_id === el.mid
+                    }).map((g) => {
+                        return {
+                            username: g.username,
+                            name: g.name,
+                            uid: g.uid,
+                        }
+                    });
+                    return Object.assign(el, { guest_list: guests.length ? guests : [] });
+                });
 
                 reqEvent.respondWith(new Response(
                     new Blob(
-                        [JSON.stringify(dbMeals.rows)],
+                        [JSON.stringify(sortedMealsList)],
                         { type: 'application/json' }
                     ),
-                    { status: 200 }
+                    { status: 200, headers: baseHeaders }
                 ));
             } else {
-                reqEvent.respondWith(new Response(null, { status: 204, statusText: 'No meals were found'}));
+                reqEvent.respondWith(new Response(null, {
+                    status: 204,
+                    statusText: 'No meals were found',
+                    headers: baseHeaders
+                }));
             }
         },
     },
@@ -73,9 +109,9 @@ async function serverHttp(conn: Deno.Conn, dbClient: DenoMysql.Client) {
 
 async function launch() {
     const client = await new DenoMysql.Client().connect({
-        hostname: "127.0.0.1",
-        username: "root",
-        db: "mkdb",
+        hostname: '127.0.0.1',
+        username: 'root',
+        db: 'mkdb',
         password: Deno.env.get('MYSQL_ROOT_PASSWORD'),
         port: 4008
     })

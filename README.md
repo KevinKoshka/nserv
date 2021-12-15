@@ -1,10 +1,12 @@
 ### Setup de configuración local
 - Setear constraseña del usuario `root` de  MariaDB con `$ export MYSQL_ROOT_PASSWORD=PASSWORD`.
+- Setear origen del cliente para proveer al CORS con `$ export ORIGIN=ORIGIN`.
 - Para generar un lock de las dependencias `$ deno cache --lock=lock.json --lock-write src/deps.ts`.
 - Para solo descargar las dependencias en cache `$ deno cache deps.ts`.
 - Para correr el server `$ deno run --allow-net src/main.ts`. El flag `--watch` levanta el servidor con live reload, `--inspect` corre la app en un sandbox de chromium para poder abrirlo con el inspector de chrome, y `--inspect-brk` hace lo mismo pero permite breakpoints.
 - Alternativamente se puede correr `$ ./nserv.sh run-inspect` o `$ ./nserv.sh run-watch`.
 - Para acceder al inspector de chrome ir a `chrome://inspect/#devices`.
+- Añadir el PATH de `mysql.exe` a las variables de entorno si fallan los pedidos a la DB.
 
 ### Setup de configuracion remota
 1. Correr `$ docker pull denoland/deno` y `$ docker pull mariadb`.

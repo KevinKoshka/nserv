@@ -1,4 +1,5 @@
 import { Colors, DenoMysql } from '../deps.ts';
+import { baseHeaders } from './main.ts';
 
 export enum RequestMethod {
     GET = 'GET',
@@ -37,7 +38,8 @@ export class EndpointHandler {
                 null,
                 {
                     'status': 200,
-                    'statusText': 'Probe accepted.'
+                    'statusText': 'Probe accepted.',
+                    headers: baseHeaders
                 }
             ));
             return;
@@ -59,7 +61,8 @@ export class EndpointHandler {
                 null,
                 {
                     'status': 404,
-                    'statusText': 'URL not found.'
+                    'statusText': 'URL not found.',
+                    headers: baseHeaders
                 }
             ));
         }
