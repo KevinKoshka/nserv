@@ -1,6 +1,6 @@
 -- --------------------------------------------------------
 -- Host:                         127.0.0.1
--- Server version:               10.6.4-MariaDB - mariadb.org binary distribution
+-- Server version:               10.6.5-MariaDB - mariadb.org binary distribution
 -- Server OS:                    Win64
 -- HeidiSQL Version:             11.3.0.6295
 -- --------------------------------------------------------
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS `guests` (
   CONSTRAINT `FK_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`uid`) ON DELETE CASCADE ON UPDATE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb3;
 
--- Dumping data for table mkdb.guests: ~24 rows (approximately)
+-- Dumping data for table mkdb.guests: ~26 rows (approximately)
 /*!40000 ALTER TABLE `guests` DISABLE KEYS */;
 INSERT INTO `guests` (`meal_id`, `user_id`) VALUES
 	(3, 'b051a093-303c-11ec-a84e-7a79195350e1'),
@@ -66,17 +66,19 @@ CREATE TABLE IF NOT EXISTS `meals` (
   `dessert` tinytext DEFAULT NULL,
   `active` set('true','false') NOT NULL DEFAULT 'false',
   `date` char(10) NOT NULL DEFAULT '',
+  `img` tinytext DEFAULT NULL,
+  `dessert_description` tinytext DEFAULT NULL,
   KEY `mid` (`mid`)
 ) ENGINE=InnoDB AUTO_INCREMENT=6 DEFAULT CHARSET=utf8mb3;
 
 -- Dumping data for table mkdb.meals: ~5 rows (approximately)
 /*!40000 ALTER TABLE `meals` DISABLE KEYS */;
-INSERT INTO `meals` (`mid`, `name`, `description`, `dessert`, `active`, `date`) VALUES
-	(3, 'Sambousas', 'Empanadas fritas típicas de Somalia rellenas de carne desmechada con vegetales salteados, acompañado de dips de babaganoush y salsa tipo Ranch casera.', NULL, 'false', '2021-10-08'),
-	(4, 'Hamburguesa con Papas Fritas', 'Hamburguesa doble con pan de papa casero, lechuga, cebolla, salsa Big Mac casera y papas fritas acompañadas de un dip de barbacoa casera.', 'Ice Cream Sandwich', 'false', '2021-10-15'),
-	(5, 'Tikka Masala', 'Pollo marinado en yogur natural, cocido con crema de leche y salsa de tomate, acompañado de arroz basmati con cúrcuma y pan de Naan.', 'Gulab Jamun con Crema', 'true', '2021-10-22'),
-	(2, 'Bao de Ceviche', 'Pan Bao cocido al vapor con relleno de ceviche de portobelos y gírgolas', NULL, 'false', '2021-10-01'),
-	(1, 'Ñoquis de papa con salsa Putanesca', 'Ñoquis de papa con salsa que incluye ajo, albahaca, alcaparras, aceitunas negras y anchoas', 'Tiramisú', 'false', '2021-09-24');
+INSERT INTO `meals` (`mid`, `name`, `description`, `dessert`, `active`, `date`, `img`, `dessert_description`) VALUES
+	(3, 'Sambousas', 'Empanadas fritas típicas de Somalia rellenas de carne desmechada con vegetales salteados, acompañado de dips de babaganoush y salsa tipo Ranch casera.', NULL, 'false', '2021-10-08', 'sambousas.jpg', NULL),
+	(4, 'Hamburguesa con Papas Fritas', 'Hamburguesa doble con pan de papa casero, lechuga, cebolla, salsa Big Mac casera y papas fritas acompañadas de un dip de barbacoa casera.', 'Ice Cream Sandwich', 'false', '2021-10-15', 'burga.jpg', NULL),
+	(5, 'Tikka Masala', 'Pollo marinado en yogur natural, cocido con crema de leche y salsa de tomate, acompañado de arroz basmati con cúrcuma y pan de Naan.', 'Gulab Jamun con Crema', 'true', '2021-10-22', 'pollo-tikka.jpg', NULL),
+	(2, 'Bao de Ceviche', 'Pan Bao cocido al vapor con relleno de ceviche de portobelos y gírgolas', NULL, 'false', '2021-10-01', 'bao-ceviche.jpg', NULL),
+	(1, 'Ñoquis de papa con salsa Putanesca', 'Ñoquis de papa con salsa que incluye ajo, albahaca, alcaparras, aceitunas negras y anchoas', 'Tiramisú', 'false', '2021-09-24', 'gnocci.jpg', NULL);
 /*!40000 ALTER TABLE `meals` ENABLE KEYS */;
 
 -- Dumping structure for table mkdb.users
@@ -103,6 +105,27 @@ INSERT INTO `users` (`name`, `uid`, `username`, `password`) VALUES
 	('Juliana Fernández', 'b054f1b1-303c-11ec-a84e-7a79195350e1', 'jfernandez', '8787df20c38f11ddd0ecf1561b982ff3'),
 	('Kevin Coscarelli', 'b0559be8-303c-11ec-a84e-7a79195350e1', 'kcoscarelli', '03d07eadb0aa888e8f2f633bf2d401dc');
 /*!40000 ALTER TABLE `users` ENABLE KEYS */;
+
+-- Dumping structure for view mkdb.v
+-- Creating temporary table to overcome VIEW dependency errors
+CREATE TABLE `v` (
+	`meal_id` INT(10) UNSIGNED NOT NULL,
+	`name` VARCHAR(80) NULL COLLATE 'utf8mb3_general_ci',
+	`uid` CHAR(36) NULL COLLATE 'utf8mb3_general_ci',
+	`username` VARCHAR(50) NULL COLLATE 'utf8mb3_general_ci'
+) ENGINE=MyISAM;
+
+-- Dumping structure for view mkdb.v
+-- Removing temporary table and create final VIEW structure
+DROP TABLE IF EXISTS `v`;
+CREATE ALGORITHM=UNDEFINED SQL SECURITY DEFINER VIEW `v` AS (
+	SELECT g.meal_id, u.name, u.uid, u.username FROM
+		guests g
+	LEFT JOIN
+		users u
+	ON
+		g.user_id=u.uid
+) ;
 
 /*!40101 SET SQL_MODE=IFNULL(@OLD_SQL_MODE, '') */;
 /*!40014 SET FOREIGN_KEY_CHECKS=IFNULL(@OLD_FOREIGN_KEY_CHECKS, 1) */;
