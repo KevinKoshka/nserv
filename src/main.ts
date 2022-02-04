@@ -8,8 +8,10 @@ export const baseHeaders = new Headers({
     'Access-Control-Allow-Headers': '*',
     'Access-Control-Allow-Credentials': 'true'
 });
+console.log(Deno.env.get('ORIGIN'))
 
-const server = Deno.listen({ port: 8080 });
+// const server = Deno.listenTls({ port: 8080, certFile: './cert.pem', keyFile: './private.pem' });
+const server = Deno.listen({ port: 8080});
 console.warn(
     Colors.yellow(`HTTP web server running at: http://localhost:8080/`),
 );
