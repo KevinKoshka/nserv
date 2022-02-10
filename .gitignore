@@ -1,6 +1,7 @@
 *.orig
 *.pyc
 *.swp
+private.pem
 
 /.cargo_home/
 /.idea/
